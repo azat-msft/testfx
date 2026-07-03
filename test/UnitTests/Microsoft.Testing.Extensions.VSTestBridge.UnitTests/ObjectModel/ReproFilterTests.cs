@@ -12,11 +12,18 @@ using Moq;
 
 namespace Microsoft.Testing.Extensions.VSTestBridge.UnitTests.ObjectModel;
 
+/// <summary>
+/// End-to-end regression for the "Test Explorer drops the test whose name contains '|'" report
+/// (see investigation/mtp-pipe-filter/HANDOFF.md). Reconstructs the exact UID selection captured from
+/// a real VS Test Explorer run and verifies that every selected node — including the ones whose names
+/// contain filter operator characters (<c>! &amp; = | ~</c>) — round-trips through
+/// <see cref="ContextAdapterBase"/> and matches its own test case.
+/// </summary>
 [TestClass]
 public sealed class ReproFilterTests
 {
     [TestMethod]
-    public void Repro_PipeTest_IsDropped()
+    public void GetTestCaseFilter_WithNamesContainingOperatorCharacters_MatchesEveryNode()
     {
         string[] uids =
         [
@@ -39,13 +46,11 @@ public sealed class ReproFilterTests
         ITestCaseFilterExpression? expr = adapter.GetTestCaseFilter(null, _ => null);
         Assert.IsNotNull(expr);
 
-        Console.WriteLine("FILTER=[" + expr.TestCaseFilterValue + "]");
-
         foreach (string uid in uids)
         {
             var testCase = new TestCase(uid, new Uri("executor://nunit"), "asm.dll");
             bool matched = expr.MatchTestCase(testCase, prop => prop == "FullyQualifiedName" ? uid : null);
-            Console.WriteLine($"MATCH[{matched}] {uid}");
+            Assert.IsTrue(matched, $"Selected node was dropped by the reconstructed filter: {uid}");
         }
     }
 }

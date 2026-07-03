@@ -31,12 +31,15 @@ public sealed class RunContextAdapterFilterTests
 """;
 
     [TestMethod]
-    public void GetTestCaseFilter_WithSingleFullyQualifiedNameNode_BuildsFullyQualifiedNameFilter2()
+    public void GetTestCaseFilter_WithSecondNodeContainingPipe_KeepsBothNodesAndEscapesPipe()
     {
+        // Regression for the "Test Explorer drops the test whose name contains '|'" report: a second
+        // node whose name contains '|' must be preserved as an escaped literal ('\|'), not silently
+        // dropped, and the '|' between the two FullyQualifiedName clauses stays the OR operator.
         RunContextAdapter adapter = CreateAdapter(EmptyRunSettings, CreateUidFilter("Namespace.MyClass.MyTest", "PrintArg(\"as|\")"));
-        String res = GetFilterValue(adapter);
+        string res = GetFilterValue(adapter);
 
-        Assert.AreEqual("(FullyQualifiedName=Namespace.MyClass.MyTest)", res);
+        Assert.AreEqual("(FullyQualifiedName=Namespace.MyClass.MyTest|FullyQualifiedName=PrintArg\\(\"as\\|\"\\))", res);
     }
 
     [TestMethod]
@@ -154,6 +157,34 @@ public sealed class RunContextAdapterFilterTests
         RunContextAdapter adapter = CreateAdapter(runSettings, new NopFilter(), commandLineFilter: "Priority=1");
 
         Assert.AreEqual("(Category=Fast) & (Priority=1)", GetFilterValue(adapter));
+    }
+
+    [TestMethod]
+    public void GetTestCaseFilter_WithSecondNodeStartingWithSpecialCharacter_DoesNotThrowAndEscapes()
+    {
+        // Regression: the "already-escaped" guard in BuildFilter used the node index (i) instead of
+        // the character index (k) when looking back at the previous character. For any node after the
+        // first (i > 0) whose first character (k == 0) is a filter operator, this evaluated
+        // Value[k - 1] == Value[-1] and threw IndexOutOfRangeException.
+        RunContextAdapter adapter = CreateAdapter(EmptyRunSettings, CreateUidFilter("A.B.Test", "(weird"));
+
+        Assert.AreEqual("(FullyQualifiedName=A.B.Test|FullyQualifiedName=\\(weird)", GetFilterValue(adapter));
+    }
+
+    [TestMethod]
+    public void GetTestCaseFilter_WithBackslashFollowedBySpecialCharacter_EscapesBoth()
+    {
+        // Regression: the buggy "already-escaped" guard treated the operator following a literal
+        // backslash as if it were already escaped, so it emitted the operator un-escaped. A raw
+        // backslash in the name must be escaped to "\\" AND the following operator must still be
+        // escaped, otherwise the operator (e.g. '|') is parsed as an OR and the clause is split.
+        RunContextAdapter adapter = CreateAdapter(EmptyRunSettings, CreateUidFilter("A.B|C"));
+
+        Assert.AreEqual("(FullyQualifiedName=A.B\\|C)", GetFilterValue(adapter));
+
+        RunContextAdapter adapterBackslash = CreateAdapter(EmptyRunSettings, CreateUidFilter("A.B\\|C"));
+
+        Assert.AreEqual("(FullyQualifiedName=A.B\\\\\\|C)", GetFilterValue(adapterBackslash));
     }
 
     private static TestNodeUidListFilter CreateUidFilter(params string[] uids)

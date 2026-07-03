@@ -4,13 +4,61 @@
 **Date:** 2026-07-03
 **Repo area:** `src/Platform/Microsoft.Testing.Extensions.VSTestBridge`
 
-This continues the earlier handoff (`mtp-pipe-filter-handoff.md`) with **hard evidence from a captured
-server-protocol session** and a **narrowed root cause**. If you are on a different machine, everything
-you need is committed on this branch. Pick up at "Where I left off".
+> **STATUS: RESOLVED — see the "Resolution (2026-07-03, second pass)" section below.**
+> The earlier "the `|` value does not round-trip through the filter grammar" hypothesis was
+> **disproven** by a runnable repro against the package version testfx actually references. The
+> filter string is built and matched correctly for `|`. A *different*, real bug was found and fixed:
+> a hand-rolled escaper in `BuildFilter` mixed the node index with the character index, throwing
+> `IndexOutOfRangeException` (and under-escaping) for multi-node selections.
 
 ---
 
-## TL;DR (refined root cause)
+## Resolution (2026-07-03, second pass)
+
+**What was verified (runnable, not hypothetical):**
+
+1. Built `test/UnitTests/Microsoft.Testing.Extensions.VSTestBridge.UnitTests` and ran
+   `RunContextAdapterFilterTests` + the repro. With the **exact 7 UIDs from the capture** and the
+   Filter.Source package testfx references (`18.8.0-preview-26276-01`), the built filter is:
+
+   ```
+   (FullyQualifiedName=...Test1|FullyQualifiedName=...PrintArg\("as\!"\)|...|FullyQualifiedName=...PrintArg\("as\|"\)|...)
+   ```
+
+   and `MatchTestCase` returns **`true` for all seven nodes, including `PrintArg("as|")`**. So the
+   `|` string round-trips correctly through `FilterExpressionWrapper`/`TestCaseFilterExpression` in
+   the current package. The real-world drop observed in the capture came from an **older Filter.Source
+   bundled with a *released* VSTestBridge** (e.g. the one NUnit's MTP runner ships), not from testfx
+   `main`.
+
+2. The actual defect in testfx `main` is in `ContextAdapterBase.BuildFilter`. The hand-rolled escaping
+   loop guarded "is this char already escaped?" with `i - 1 < 0 || currentTestNodeUid.Value[k - 1] != '\\'`,
+   mixing the **node index `i`** with the **character index `k`**. For any node after the first
+   (`i > 0`) whose **first** character (`k == 0`) is a filter operator, this evaluates `Value[-1]` and
+   throws `IndexOutOfRangeException`, aborting the whole run. It also under-escapes an operator that
+   follows a literal backslash in a later node.
+
+**The fix (committed):** replace the hand-rolled loop with VSTest's canonical
+`FilterHelper.Escape(currentTestNodeUid.Value)` (already accessible via the imported
+`Microsoft.VisualStudio.TestPlatform.Common.Filtering` namespace). It escapes every operator
+unconditionally — correct for a raw UID — and removes the index bug entirely.
+
+**Regression tests (all green, 59/59 on net8.0):**
+
+- `RunContextAdapterFilterTests.GetTestCaseFilter_WithSecondNodeContainingPipe_KeepsBothNodesAndEscapesPipe`
+- `RunContextAdapterFilterTests.GetTestCaseFilter_WithSecondNodeStartingWithSpecialCharacter_DoesNotThrowAndEscapes`
+  (this one reproduced the `IndexOutOfRangeException` before the fix)
+- `RunContextAdapterFilterTests.GetTestCaseFilter_WithBackslashFollowedBySpecialCharacter_EscapesBoth`
+- `ReproFilterTests.GetTestCaseFilter_WithNamesContainingOperatorCharacters_MatchesEveryNode`
+  (asserts every captured UID matches its own test case)
+
+**Still open / optional follow-up:** an acceptance test driving the real Test Explorer server-protocol
+path end-to-end (NUnit/MSTest-on-MTP asset selected by UID) would guard against future regressions in
+the *shipped* bridge, but the unit-level regressions above cover the testfx code under change.
+
+---
+
+## Original TL;DR (first pass — superseded, kept for history)
 
 When Visual Studio Test Explorer runs selected tests for an MTP-based project, it sends the selection
 **by test-node UID over the JSON-RPC server protocol** (`testing/runTests`) — there is **no CLI
