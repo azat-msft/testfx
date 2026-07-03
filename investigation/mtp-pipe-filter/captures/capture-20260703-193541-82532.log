@@ -1,0 +1,79 @@
+=== mtp-proxy start 2026-07-03T19:35:41.3365878+02:00 pid=82532 ===
+args: --server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory C:\Users\azatm\repos\ticket-11115502\bin\Debug\net10.0\Log --results-directory C:\Users\azatm\repos\ticket-11115502\TestResults --client-port 60385
+realDll: C:\Users\azatm\repos\ticket-11115502\bin\Debug\net10.0\ticket-11115502.dll
+VS listening port (client-port): 60385
+proxy listening on: 60388
+connected to VS
+launched real host pid=92072: dotnet C:\Users\azatm\repos\ticket-11115502\bin\Debug\net10.0\ticket-11115502.dll --server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory C:\Users\azatm\repos\ticket-11115502\bin\Debug\net10.0\Log --results-directory C:\Users\azatm\repos\ticket-11115502\TestResults --client-port 60388
+real host connected to proxy
+=== relay begin ===
+
+--- VS->HOST (312 bytes) 19:35:41.686 ---
+Content-Length: 289
+
+{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"processId":59784,"clientInfo":{"name":"Microsoft Visual Studio Testing Platform Client","version":"1.0.1"},"capabilities":{"testing":{"debuggerProvider":true,"multipleConnectionProvider":{"port":60385},"attachmentsProvider":true}}}}
+--- HOST->VS (353 bytes) 19:35:41.738 ---
+Content-Length: 287
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","id":2,"result":{"processId":92072,"serverInfo":{"name":"test-anywhere","version":"2.1.0"},"capabilities":{"testing":{"supportsDiscovery":true,"experimental_multiRequestSupport":false,"vstestProvider":true,"attachmentsSupport":true,"multipleConnectionProvider":false}}}}
+--- VS->HOST (965 bytes) 19:35:41.746 ---
+Content-Length: 942
+
+{"jsonrpc":"2.0","id":3,"method":"testing/runTests","params":{"runId":"86ff55d1-fcbe-4377-ad33-afbf1e8f8955","tests":[{"uid":"ticket_11115502.Tests.Test1","display-name":"Test1","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as!\u0022)","display-name":"PrintArg(\u0022as!\u0022)","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0022)","display-name":"PrintArg(\u0022as\u0022)","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0026\u0022)","display-name":"PrintArg(\u0022as\u0026\u0022)","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as=\u0022)","display-name":"PrintArg(\u0022as=\u0022)","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as|\u0022)","display-name":"PrintArg(\u0022as|\u0022)","node-type":"Action"},{"uid":"ticket_11115502.Tests.PrintArg(\u0022as~\u0022)","display-name":"PrintArg(\u0022as~\u0022)","node-type":"Action"}]}}
+--- HOST->VS (221 bytes) 19:35:41.773 ---
+Content-Length: 155
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Information","message":"Connecting to client host \u0027127.0.0.1\u0027 port \u002760388\u0027"}}
+--- HOST->VS (246 bytes) 19:35:41.806 ---
+Content-Length: 180
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Trace","message":"Starting test session. The log file path is \u0027C:\\temp\\mtp-diag\\log_260703173541467.diag\u0027."}}
+--- HOST->VS (196 bytes) 19:35:41.902 ---
+Content-Length: 130
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Information","message":"NUnit Adapter 1.0.0.0: Test execution started"}}
+--- HOST->VS (259 bytes) 19:35:41.976 ---
+Content-Length: 193
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Information","message":"Running selected tests in C:\\Users\\azatm\\repos\\ticket-11115502\\bin\\Debug\\net10.0\\ticket-11115502.dll"}}
+--- HOST->VS (254 bytes) 19:35:42.168 ---
+Content-Length: 188
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Information","message":"   NUnit3TestExecutor discovered 6 of 6 NUnit test cases using Current Discovery mode, Non-Explicit run"}}
+--- HOST->VS (1024 bytes) 19:35:42.321 ---
+Content-Length: 7857
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"testing/testUpdates/tests","params":{"runId":"86ff55d1-fcbe-4377-ad33-afbf1e8f8955","changes":[{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0022)","display-name":"PrintArg(\u0022as\u0022)","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as\u0022)","vstest.TestCase.Id":"112a42f8-3777-43cd-1101-cc94609ba2b7","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0022)","display-name":"PrintArg(\u0022as\u0022)","time.duration-ms":42.153,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as\u0022)","vstest.TestCase.Id":"112a42f8-3777-43cd-1101-cc94609ba2b7","node-type":"action","execution-state":"failed","error.message":"  Assert.That(arg, Is.EqualTo(\u0022a\u0022
+--- HOST->VS (6900 bytes) 19:35:42.323 ---
+))\r\n  Expected string length 1 but was 2. Strings differ at index 1.\r\n  Expected: \u0022a\u0022\r\n  But was:  \u0022as\u0022\r\n  ------------^\r\n","error.stacktrace":"   at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n\n1)    at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n\n","assert.actual":"","assert.expected":""},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as=\u0022)","display-name":"PrintArg(\u0022as=\u0022)","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as=\u0022)","vstest.TestCase.Id":"7e42470d-bc76-187b-e854-129379eb9e61","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as=\u0022)","display-name":"PrintArg(\u0022as=\u0022)","time.duration-ms":0.854,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as=\u0022)","vstest.TestCase.Id":"7e42470d-bc76-187b-e854-129379eb9e61","node-type":"action","execution-state":"failed","error.message":"  Assert.That(arg, Is.EqualTo(\u0022a\u0022))\r\n  Expected string length 1 but was 3. Strings differ at index 1.\r\n  Expected: \u0022a\u0022\r\n  But was:  \u0022as=\u0022\r\n  ------------^\r\n","error.stacktrace":"   at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n1)    at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n","assert.actual":"","assert.expected":""},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as!\u0022)","display-name":"PrintArg(\u0022as!\u0022)","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as!\u0022)","vstest.TestCase.Id":"0a918a18-741b-6839-5447-7c42d77b6be7","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as!\u0022)","display-name":"PrintArg(\u0022as!\u0022)","time.duration-ms":0.219,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as!\u0022)","vstest.TestCase.Id":"0a918a18-741b-6839-5447-7c42d77b6be7","node-type":"action","execution-state":"failed","error.message":"  Assert.That(arg, Is.EqualTo(\u0022a\u0022))\r\n  Expected string length 1 but was 3. Strings differ at index 1.\r\n  Expected: \u0022a\u0022\r\n  But was:  \u0022as!\u0022\r\n  ------------^\r\n","error.stacktrace":"   at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n1)    at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n","assert.actual":"","assert.expected":""},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0026\u0022)","display-name":"PrintArg(\u0022as\u0026\u0022)","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as\u0026\u0022)","vstest.TestCase.Id":"6ae0e022-677b-c723-035a-8df27e1998f7","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as\u0026\u0022)","display-name":"PrintArg(\u0022as\u0026\u0022)","time.duration-ms":0.168,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as\u0026\u0022)","vstest.TestCase.Id":"6ae0e022-677b-c723-035a-8df27e1998f7","node-type":"action","execution-state":"failed","error.message":"  Assert.That(arg, Is.EqualTo(\u0022a\u0022))\r\n  Expected string length 1 but was 3. Strings differ at index 1.\r\n  Expected: \u0022a\u0022\r\n  But was:  \u0022as\u0026\u0022\r\n  ------------^\r\n","error.stacktrace":"   at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n1)    at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n","assert.actual":"","assert.expected":""},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as~\u0022)","display-name":"PrintArg(\u0022as~\u0022)","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as~\u0022)","vstest.TestCase.Id":"aa7d1ca8-1119-a3d9-f5ae-f34901066fcd","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.PrintArg(\u0022as~\u0022)","display-name":"PrintArg(\u0022as~\u0022)","time.duration-ms":0.151,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.PrintArg(\u0022as~\u0022)","vstest.TestCase.Id":"aa7d1ca8-1119-a3d9-f5ae-f34901066fcd","node-type":"action","execution-state":"failed","error.message":"  Assert.That(arg, Is.EqualTo(\u0022a\u0022))\r\n  Expected string length 1 but was 3. Strings differ at index 1.\r\n  Expected: \u0022a\u0022\r\n  But was:  \u0022as~\u0022\r\n  ------------^\r\n","error.stacktrace":"   at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n1)    at ticket_11115502.Tests.PrintArg(String arg) in C:\\Users\\azatm\\repos\\ticket-11115502\\UnitTest1.cs:line 26\r\n   at InvokeStub_Tests.PrintArg(Object, Span\u00601)\r\n\n","assert.actual":"","assert.expected":""},"parent":null},{"node":{"uid":"ticket_11115502.Tests.Test1","display-name":"Test1","vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.Test1","vstest.TestCase.Id":"9f6a2186-e01f-8dd5-39a3-ea49536f546f","node-type":"action","execution-state":"in-progress"},"parent":null},{"node":{"uid":"ticket_11115502.Tests.Test1","display-name":"Test1","time.duration-ms":0.544,"vstest.original-executor-uri":"executor://nunit3testexecutor/","vstest.TestCase.FullyQualifiedName":"ticket_11115502.Tests.Test1","vstest.TestCase.Id":"9f6a2186-e01f-8dd5-39a3-ea49536f546f","node-type":"action","execution-state":"passed"},"parent":null}]}}
+--- HOST->VS (167 bytes) 19:35:42.330 ---
+Content-Length: 101
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"client/log","params":{"level":"Trace","message":"Finished test session."}}
+--- HOST->VS (193 bytes) 19:35:42.331 ---
+Content-Length: 127
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"testing/testUpdates/tests","params":{"runId":"86ff55d1-fcbe-4377-ad33-afbf1e8f8955","changes":null}}
+--- HOST->VS (633 bytes) 19:35:42.341 ---
+Content-Length: 567
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","method":"telemetry/update","params":{"eventName":"dotnet/testingplatform/execution/testsrun","metrics":{"total passed":1,"total failed":5,"total passed retries":0,"total failed retries":0,"request start":"2026-07-03T17:35:41.7625000+00:00","request stop":"2026-07-03T17:35:42.3335434+00:00","adapter load start":"2026-07-03T17:35:41.7674846+00:00","adapter load stop":"2026-07-03T17:35:41.8015388+00:00","request execute start":"2026-07-03T17:35:41.8015395+00:00","request execute stop":"2026-07-03T17:35:42.3313661+00:00","filter enabled":"true"}}}
+--- HOST->VS (117 bytes) 19:35:42.342 ---
+Content-Length: 52
+Content-Type: application/testingplatform
+
+{"jsonrpc":"2.0","id":3,"result":{"attachments":[]}}
+--- VS->HOST (67 bytes) 19:35:42.344 ---
+Content-Length: 45
+
+{"jsonrpc":"2.0","method":"exit","params":{}}=== child exited code=0 ===
