@@ -141,6 +141,20 @@ public sealed class TestingPlatformClient : IDisposable
             return runListener;
         });
 
+    /// <summary>
+    /// Sends a <c>testing/runTests</c> request that selects tests by node UID, mirroring how Visual
+    /// Studio Test Explorer runs a specific set of selected tests (no CLI <c>--filter</c> involved).
+    /// </summary>
+    public async Task<ResponseListener> RunTestsByUid(Guid requestId, RunRequestTestNode[] tests, Func<TestNodeUpdate[], Task> action)
+        => await CheckedInvoke(async () =>
+        {
+            using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromMinutes(3));
+            var runListener = new TestNodeUpdatesResponseListener(requestId, action);
+            _targetHandler.RegisterResponseListener(runListener);
+            await JsonRpcClient.InvokeWithParameterObjectAsync("testing/runTests", new RunRequestByUid(RunId: requestId, Tests: tests), cancellationToken: cancellationTokenSource.Token);
+            return runListener;
+        });
+
     public void Dispose()
     {
         JsonRpcClient.Dispose();

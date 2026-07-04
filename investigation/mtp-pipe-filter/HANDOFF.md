@@ -11,6 +11,56 @@
 > a hand-rolled escaper in `BuildFilter` mixed the node index with the character index, throwing
 > `IndexOutOfRangeException` (and under-escaping) for multi-node selections.
 
+> **UPDATE (2026-07-04, third pass — end-to-end socket repro):**
+> A faithful, socket-driven end-to-end test was added that drives a real NUnit-on-MTP host over the
+> server protocol exactly like Visual Studio Test Explorer (discover, then `testing/runTests` selecting
+> every test **by node UID**, no CLI `--filter`) and asserts every selected test — including
+> `PrintArg("as|")` — actually runs. **The `|` drop does NOT reproduce on current `main`.** It passes
+> with the fixed `BuildFilter`, with the original (pre-fix) `BuildFilter`, and even when the asset is
+> pinned to the released `Microsoft.Testing.Extensions.VSTestBridge` **2.1.0**. Conclusion: the drop
+> seen in the original capture came from an **older VSTest `Filter.Source` tokenizer** (bundled in an
+> older shipped bridge) that did not treat an escaped `\|` inside a value as a literal; that tokenizer
+> has since been fixed upstream (the `Microsoft.TestPlatform.Filter.Source 18.8.0-preview-26276-01` that
+> `main` references handles it correctly). See "End-to-end reproduction (third pass)" below.
+
+---
+
+## End-to-end reproduction (third pass, 2026-07-04)
+
+New test (committed):
+`test/IntegrationTests/MSTest.Acceptance.IntegrationTests/NUnitPipeFilterServerModeTests.cs`
+(`RunSelectedTestsByUid_WithNameContainingPipe_RunsThePipeTest`).
+
+Supporting infrastructure:
+- `test/IntegrationTests/Microsoft.Testing.Platform.Acceptance.IntegrationTests/ServerMode/v1.0.0/RunRequestByUid.cs`
+  — a `testing/runTests` payload carrying a `tests[]` UID array.
+- `TestingPlatformClient.RunTestsByUid(...)` — sends that request over the JSON-RPC socket, mirroring
+  how Test Explorer runs a UID selection (there is no CLI `--filter`).
+
+What the test does (matches the captured traffic exactly):
+1. Generates an NUnit-on-MTP executable asset (`net8.0`, NUnit 4.6.1 + NUnit3TestAdapter 6.2.0) with the
+   same tests as the capture — one plain test plus `[TestCase("as!"/"as"/"as&"/"as="/"as|"/"as~")]`.
+   The asset **pins this repo's locally-built MTP packages** so it exercises the in-repo VSTestBridge
+   (overriding NUnit3TestAdapter's transitive `[2.1.0, )`).
+2. Launches the host in `--server` mode and connects over TCP.
+3. Discovers all tests (7 leaf nodes, including the `|` one).
+4. Sends a single `testing/runTests` selecting all 7 **by UID**.
+5. Asserts every selected test — especially `PipeFilterRepro.Tests.PrintArg("as|")` — reports a terminal
+   execution state (a dropped test would produce no result node at all).
+
+Result matrix (all **PASS** — the pipe test always runs):
+
+| Bridge under test | `|` test runs? |
+| --- | --- |
+| In-repo VSTestBridge with the `FilterHelper.Escape` fix | ✅ yes |
+| In-repo VSTestBridge with the **original** hand-rolled `BuildFilter` | ✅ yes |
+| Released `Microsoft.Testing.Extensions.VSTestBridge` **2.1.0** | ✅ yes |
+
+So the reported symptom is not reproducible with any bridge/Filter.Source version currently in play.
+If someone can still reproduce it, capture the exact `Microsoft.Testing.Extensions.VSTestBridge` /
+`Microsoft.TestPlatform.Filter.Source` versions from that build — the fix will be to bump the bundled
+Filter.Source, not to change `BuildFilter`.
+
 ---
 
 ## Resolution (2026-07-03, second pass)
