@@ -27,6 +27,24 @@ public partial /* for codegen regx */ class ServerModeTestsBase<TFixture> : Acce
 
     protected async Task<TestingPlatformClient> StartAsServerAndConnectToTheClientAsync(TestHost testHost, IReadOnlyDictionary<string, string?>? additionalEnvironmentVariables)
     {
+        (TcpClient tcpClient, IProcessHandle processHandler) = await LaunchServerAndAcceptClientAsync(testHost, additionalEnvironmentVariables);
+        return new TestingPlatformClient(new(tcpClient.GetStream()), tcpClient, processHandler);
+    }
+
+    /// <summary>
+    /// Same as <see cref="StartAsServerAndConnectToTheClientAsync(TestHost)"/> but returns a raw client
+    /// that lets a test write pre-serialized JSON-RPC frames straight to the socket (bypassing
+    /// StreamJsonRpc re-serialization). This is used to replay the exact bytes captured from Visual
+    /// Studio Test Explorer and validate the server's own JSON parse/unescape path.
+    /// </summary>
+    protected async Task<RawTestingPlatformClient> StartAsServerAndConnectRawAsync(TestHost testHost)
+    {
+        (TcpClient tcpClient, IProcessHandle processHandler) = await LaunchServerAndAcceptClientAsync(testHost, additionalEnvironmentVariables: null);
+        return new RawTestingPlatformClient(tcpClient, processHandler);
+    }
+
+    private static async Task<(TcpClient TcpClient, IProcessHandle ProcessHandler)> LaunchServerAndAcceptClientAsync(TestHost testHost, IReadOnlyDictionary<string, string?>? additionalEnvironmentVariables)
+    {
         var environmentVariables = new Dictionary<string, string?>(DefaultEnvironmentVariables);
         foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
         {
@@ -80,6 +98,6 @@ public partial /* for codegen regx */ class ServerModeTestsBase<TFixture> : Acce
             throw new OperationCanceledException($"Timeout on connection for command line '{processConfig.FileName} {processConfig.Arguments}'\n{builder}", ex, cancellationTokenSource.Token);
         }
 
-        return new TestingPlatformClient(new(tcpClient.GetStream()), tcpClient, processHandler);
+        return (tcpClient, processHandler);
     }
 }

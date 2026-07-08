@@ -36,17 +36,30 @@ Supporting infrastructure:
   — a `testing/runTests` payload carrying a `tests[]` UID array.
 - `TestingPlatformClient.RunTestsByUid(...)` — sends that request over the JSON-RPC socket, mirroring
   how Test Explorer runs a UID selection (there is no CLI `--filter`).
+- `RawTestingPlatformClient` — a minimal client that reads/writes **raw** JSON-RPC frames on the socket
+  (bypassing StreamJsonRpc), used by the raw-replay test below.
 
-What the test does (matches the captured traffic exactly):
+The class contains **two** tests (both PASS):
+
+`RunSelectedTestsByUid_WithNameContainingPipe_RunsThePipeTest` — builds the request via the object model:
 1. Generates an NUnit-on-MTP executable asset (`net8.0`, NUnit 4.6.1 + NUnit3TestAdapter 6.2.0) with the
-   same tests as the capture — one plain test plus `[TestCase("as!"/"as"/"as&"/"as="/"as|"/"as~")]`.
-   The asset **pins this repo's locally-built MTP packages** so it exercises the in-repo VSTestBridge
-   (overriding NUnit3TestAdapter's transitive `[2.1.0, )`).
+   same tests as the capture — one plain test plus `[TestCase("as!"/"as"/"as&"/"as="/"as|"/"as~")]`, in
+   namespace `ticket_11115502` so UIDs are byte-identical to the capture. The asset **pins this repo's
+   locally-built MTP packages** so it exercises the in-repo VSTestBridge (overriding NUnit3TestAdapter's
+   transitive `[2.1.0, )`).
 2. Launches the host in `--server` mode and connects over TCP.
 3. Discovers all tests (7 leaf nodes, including the `|` one).
 4. Sends a single `testing/runTests` selecting all 7 **by UID**.
-5. Asserts every selected test — especially `PipeFilterRepro.Tests.PrintArg("as|")` — reports a terminal
+5. Asserts every selected test — especially `ticket_11115502.Tests.PrintArg("as|")` — reports a terminal
    execution state (a dropped test would produce no result node at all).
+
+`RunTests_ReplayingRawCapturedJsonRpc_ParsesEscapedUidsAndRunsThePipeTest` — sends the **exact captured
+bytes**: it writes the `testing/runTests` frame from
+`captures/capture-20260703-193541-82532.log` verbatim, including its JSON unicode escapes (`\u0022` for
+`"`, `\u0026` for `&`) and the literal `|`, straight to the socket (no StreamJsonRpc re-serialization).
+This validates the **server's own JSON parse/unescape path** end to end. It also passes — every UID
+(escapes and the `|`) round-trips through the server deserializer and the VSTestBridge filter, and all 7
+tests run.
 
 Result matrix (all **PASS** — the pipe test always runs):
 
@@ -56,10 +69,10 @@ Result matrix (all **PASS** — the pipe test always runs):
 | In-repo VSTestBridge with the **original** hand-rolled `BuildFilter` | ✅ yes |
 | Released `Microsoft.Testing.Extensions.VSTestBridge` **2.1.0** | ✅ yes |
 
-So the reported symptom is not reproducible with any bridge/Filter.Source version currently in play.
-If someone can still reproduce it, capture the exact `Microsoft.Testing.Extensions.VSTestBridge` /
-`Microsoft.TestPlatform.Filter.Source` versions from that build — the fix will be to bump the bundled
-Filter.Source, not to change `BuildFilter`.
+So the reported symptom is not reproducible with any bridge/Filter.Source version currently in play, and
+the server parses/unescapes the captured JSON-RPC correctly. If someone can still reproduce it, capture
+the exact `Microsoft.Testing.Extensions.VSTestBridge` / `Microsoft.TestPlatform.Filter.Source` versions
+from that build — the fix will be to bump the bundled Filter.Source, not to change `BuildFilter`.
 
 ---
 
