@@ -108,7 +108,7 @@ public class DesktopTestSourceHostTests : TestContainer
 
     private static string GetTestAssemblyPath(string assetName)
     {
-        string testAssetPath = Path.Combine(
+        string testAssetDir = Path.Combine(
             GetArtifactsBinDir(),
             assetName,
 #if DEBUG
@@ -116,10 +116,16 @@ public class DesktopTestSourceHostTests : TestContainer
 #else
             "Release",
 #endif
-            "net462",
-            assetName + ".dll");
+            "net462");
 
-        File.Exists(testAssetPath).Should().BeTrue($"Test asset '{testAssetPath}' should exist");
+        // Some test assets (e.g. DesktopTestProjectx86Debug) are built as Microsoft.Testing.Platform
+        // executables (.exe) rather than libraries (.dll), while others (e.g.
+        // SampleProjectForAssemblyResolution) remain libraries. Probe for both output extensions.
+        string dllPath = Path.Combine(testAssetDir, assetName + ".dll");
+        string exePath = Path.Combine(testAssetDir, assetName + ".exe");
+        string testAssetPath = File.Exists(dllPath) ? dllPath : exePath;
+
+        File.Exists(testAssetPath).Should().BeTrue($"Test asset '{dllPath}' or '{exePath}' should exist");
 
         return testAssetPath;
     }
